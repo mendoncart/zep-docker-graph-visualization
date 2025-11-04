@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  zep-graph:
+    build: .
+    container_name: zep-graph
+    ports:
+      - "3000:3000"
+    environment:
+      - ZEP_API_KEY=${ZEP_API_KEY}
+    restart: unless-stopped
