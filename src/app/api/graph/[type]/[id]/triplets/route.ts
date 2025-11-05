@@ -5,36 +5,6 @@ import { createTriplets } from "@/lib/utils/graph";
 import { ZepClient } from "@getzep/zep-js";
 import { EntityNode, EntityEdge } from "@getzep/zep-cloud/api";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ type: ResourceType; id: string }> }
-) {
-  try {
-    const ZEP_API_KEY = process.env.ZEP_API_KEY;
-    const ZEP_BASE_URL = process.env.ZEP_BASE_URL || "http://localhost:8000"; // Adicionar esta linha
-
-    if (!ZEP_API_KEY) {
-      return NextResponse.json(
-        { error: "ZEP_API_KEY is not set" },
-        { status: 500 }
-      );
-    }
-
-    // Modificar a inicialização do ZepClient
-    const zep = new ZepClient({
-      apiKey: ZEP_API_KEY,
-      baseURL: ZEP_BASE_URL
-    });
-
-    // ... (resto do código permanece igual)
-  } catch (error) {
-    console.error("Error fetching triplets:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch graph data" },
-      { status: 500 }
-    );
-  }
-}
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -189,6 +159,7 @@ export async function GET(
 ) {
   try {
     const ZEP_API_KEY = process.env.ZEP_API_KEY;
+    const ZEP_BASE_URL = process.env.ZEP_BASE_URL || "http://zep:8000"; // Add local baseURL
 
     if (!ZEP_API_KEY) {
       return NextResponse.json(
@@ -197,7 +168,11 @@ export async function GET(
       );
     }
 
-    const zep = new ZepClient({ apiKey: ZEP_API_KEY });
+    // const zep = new ZepClient({ apiKey: ZEP_API_KEY });
+    const zep = new ZepClient({
+      apiKey: ZEP_API_KEY,
+      baseURL: ZEP_BASE_URL
+    });
 
     const { type, id } = await params;
 
