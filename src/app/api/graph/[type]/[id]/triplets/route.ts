@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Node, Edge, RawTriplet } from "@/lib/types/graph";
 import { createTriplets } from "@/lib/utils/graph";
-//import { ZepClient } from "@getzep/zep-cloud";
 import { ZepClient } from "@getzep/zep-js";
-import { EntityNode, EntityEdge } from "@getzep/zep-cloud/api";
+import type { INode, IEdge } from "@getzep/zep-js";
 
 
 interface PaginatedResponse<T> {
@@ -16,32 +15,33 @@ type ResourceType = (typeof supportedResourceTypes)[number];
 const NODE_BATCH_SIZE = 100;
 const EDGE_BATCH_SIZE = 100;
 
-const transformSDKNode = (node: EntityNode): Node => {
+const transformSDKNode = (node: INode): Node => {
   return {
     uuid: node.uuid,
-    name: node.name,
-    summary: node.summary,
-    labels: node.labels,
-    created_at: node.createdAt,
+    name: node.name || "",
+    summary: node.summary || "",
+    labels: node.labels || [],
+    created_at: node.created_at || "",
     updated_at: "",
-    attributes: node.attributes,
+    attributes: node.metadata || {}, // node.metadata no zep-js em vez de attributes
   };
 };
 
-const transformSDKEdge = (edge: EntityEdge): Edge => {
+// Atualizar a função para usar o tipo IEdge do zep-js
+const transformSDKEdge = (edge: IEdge): Edge => {
   return {
     uuid: edge.uuid,
-    source_node_uuid: edge.sourceNodeUuid,
-    target_node_uuid: edge.targetNodeUuid,
+    source_node_uuid: edge.source_node_uuid, // campos podem ter nomes diferentes
+    target_node_uuid: edge.target_node_uuid,
     type: "",
-    name: edge.name,
-    fact: edge.fact,
-    episodes: edge.episodes,
-    created_at: edge.createdAt,
+    name: edge.name || "",
+    fact: edge.fact || "",
+    episodes: edge.episodes || [],
+    created_at: edge.created_at || "",
     updated_at: "",
-    valid_at: edge.validAt,
-    expired_at: edge.expiredAt,
-    invalid_at: edge.invalidAt,
+    valid_at: edge.valid_at || null,
+    expired_at: edge.expired_at || null,
+    invalid_at: edge.invalid_at || null,
   };
 };
 
@@ -54,13 +54,13 @@ async function getNodes(
   try {
     let nodes;
     if (type === "user") {
-      nodes = await zep.graph.node.getByUserId(id, {
-        uuidCursor: cursor || "",
+      nodes = await zep.graph.getNodesByUserId(id, {
+        cursor: cursor || "",
         limit: NODE_BATCH_SIZE,
       });
     } else {
-      nodes = await zep.graph.node.getByGroupId(id, {
-        uuidCursor: cursor || "",
+      nodes = await zep.graph.getNodesByGroupId(id, {
+        cursor: cursor || "",
         limit: NODE_BATCH_SIZE,
       });
     }
@@ -85,13 +85,13 @@ async function getEdges(
   try {
     let edges;
     if (type === "user") {
-      edges = await zep.graph.edge.getByUserId(id, {
-        uuidCursor: cursor || "",
+      edges = await zep.graph.getEdgesByUserId(id, {
+        cursor: cursor || "",
         limit: EDGE_BATCH_SIZE,
       });
     } else {
-      edges = await zep.graph.edge.getByGroupId(id, {
-        uuidCursor: cursor || "",
+      edges = await zep.graph.getEdgesByGroupId(id, {
+        cursor: cursor || "",
         limit: EDGE_BATCH_SIZE,
       });
     }
